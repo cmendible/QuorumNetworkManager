@@ -173,9 +173,9 @@ then
   echo 'Cloning and installing QuorumNetworkManager...'
   git clone https://github.com/consensys/QuorumNetworkManager.git
   cd QuorumNetworkManager/
-  git checkout v0.8.0-beta
+  git checkout v0.8.1-beta
   npm install
-  echo 'Cloned and installed QuorumNetworkManager'
+  echo 'Cloned and installed QuorumNetworkManager v0.8.1-beta'
 else
   echo 'Skipped cloning and installing QuorumNetworkManager'
 fi
