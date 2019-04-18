@@ -1,3 +1,5 @@
+# Note: this project is no longer under active development, and has not been for a while! If I have time I might do some work on it in the future, but for now use at own risk!
+
 # Contents
 
 1. Introduction & Additional functionality
