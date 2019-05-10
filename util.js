@@ -256,8 +256,8 @@ function createRaftGenesisBlockConfig(result, cb){
       "homesteadBlock": 0,
       "byzantiumBlock": 0,
       "chainId": config.chainId,
-      "eip155Block": null,
-      "eip158Block": null,
+      "eip155Block": 0,
+      "eip158Block": 0,
       "isQuorum": true
     },
     "difficulty": "0x0",

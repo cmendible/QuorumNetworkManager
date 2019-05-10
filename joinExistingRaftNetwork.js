@@ -10,12 +10,16 @@ let peerHandler = require('./peerHandler.js')
 let fundingHandler = require('./fundingHandler.js')
 let ports = require('./config.js').ports
 let setup = require('./config.js').setup
+let service = require('./config.js').service
 
 prompt.start()
 
 function startRaftNode(result, cb){
   let options = {encoding: 'utf8', timeout: 100*1000}
+  let ethstats = 'coordinator-'+create_UUID()+':'+service.secret+'@'+service.name
   let cmd = './startRaftNode.sh'
+  cmd += ' '+ethstats
+  cmd += ' '+service.secret
   cmd += ' '+setup.targetGasLimit
   cmd += ' '+ports.gethNode
   cmd += ' '+ports.gethNodeRPC
@@ -29,6 +33,7 @@ function startRaftNode(result, cb){
   cmd += ' '+result.communicationNetwork.raftID
   let child = exec(cmd, options)
   child.stdout.on('data', function(data){
+	console.log('Arranque del Nodo: '+data)  
     cb(null, result)
   })
   child.stderr.on('data', function(error){
@@ -105,7 +110,8 @@ function joinRaftNetwork(config, cb){
     "web3WSRPCProvider": 'ws://localhost:'+ports.gethNodeWS_RPC,
     consensus: 'raft'
   }
-
+	console.log('nodeConfig')
+	
   let seqFunction = async.seq(
     handleExistingFiles,
     whisper.JoinCommunicationNetwork,
@@ -118,10 +124,11 @@ function joinRaftNetwork(config, cb){
     fundingHandler.MonitorAccountBalances,
     whisper.PublishNodeInformation
   )
-
+	console.log('seqFunction')
   seqFunction(nodeConfig, function(err, res){
     if (err) { return console.log('ERROR', err) }
     console.log('[*] New network started')
+	console.log(res)
     cb(err, res)
   })
 }
@@ -137,21 +144,38 @@ function getRemoteIpAddress(cb){
   } 
 }
 
+
 function handleJoiningRaftNetwork(options, cb){
   config = {}
   config.localIpAddress = options.localIpAddress
   config.keepExistingFiles = options.keepExistingFiles
+  console.log('Dentro de handleJoiningRaftNetwork options vale: ' +options)
   getRemoteIpAddress(function(remoteIpAddress){
     config.remoteIpAddress = remoteIpAddress
+	console.log('Se va a conectar con la siguiente IP del Coordinator: ' +options)
     joinRaftNetwork(config, function(err, result){
       if (err) { return console.log('ERROR', err) }
       let networks = {
         raftNetwork: Object.assign({}, result),
         communicationNetwork: config.communicationNetwork
       }
+	  console.log('---networks---')
+	  console.log('networks.raftNetwork: '+networks.raftNetwork)
+	  console.log('networks.communicationNetwork: ' +networks.communicationNetwork)
+	  console.log('---FIN networks---')
       cb(err, networks)
     })
   })
+}
+
+function create_UUID(){
+    var dt = new Date().getTime();
+    var uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+        var r = (dt + Math.random()*16)%16 | 0;
+        dt = Math.floor(dt/16);
+        return (c=='x' ? r :(r&0x3|0x8)).toString(16);
+    });
+    return uuid;
 }
 
 exports.HandleJoiningRaftNetwork = handleJoiningRaftNetwork

@@ -7,58 +7,62 @@ let peerHandler = require('./peerHandler.js')
 let fundingHandler = require('./fundingHandler.js')
 let ports = require('./config.js').ports
 let setup = require('./config.js').setup
+let service = require('./config.js').service
 
-function startRaftNode(result, cb){
+function startRaftNode(result, cb) {
   console.log('[*] Starting raft node...')
-  let options = {encoding: 'utf8', timeout: 100*1000}
+  let options = { encoding: 'utf8', timeout: 100 * 1000 }
+  let ethstats = 'coordinator-' + create_UUID() + ':' + service.secret + '@' + service.name
   let cmd = './startRaftNode.sh'
-  cmd += ' '+setup.targetGasLimit
-  cmd += ' '+ports.gethNode
-  cmd += ' '+ports.gethNodeRPC
-  cmd += ' '+ports.gethNodeWS_RPC
-  cmd += ' '+ports.raftHttp
-  if(result.networkMembership === 'permissionedNodes'){
-    cmd += ' permissionedNodes' 
+  cmd += ' ' + ethstats
+  cmd += ' ' + service.secret
+  cmd += ' ' + setup.targetGasLimit
+  cmd += ' ' + ports.gethNode
+  cmd += ' ' + ports.gethNodeRPC
+  cmd += ' ' + ports.gethNodeWS_RPC
+  cmd += ' ' + ports.raftHttp
+  if (result.networkMembership === 'permissionedNodes') {
+    cmd += ' permissionedNodes'
   } else {
     cmd += ' allowAll'
   }
   let child = exec(cmd, options)
-  child.stdout.on('data', function(data){
+  child.stdout.on('data', function (data) {
     cb(null, result)
   })
-  child.stderr.on('data', function(error){
+  child.stderr.on('data', function (error) {
     console.log('Start raft node ERROR:', error)
     cb(error, null)
   })
 }
 
-function startNewRaftNetwork(config, cb){
+function startNewRaftNetwork(config, cb) {
   console.log('[*] Starting new node...')
 
   let nodeConfig = {
     localIpAddress: config.localIpAddress,
     networkMembership: config.networkMembership,
     keepExistingFiles: config.keepExistingFiles,
-    folders: ['Blockchain', 'Blockchain/geth', 'Constellation'], 
+    folders: ['Blockchain', 'Blockchain/geth', 'Constellation'],
     constellationKeySetup: [
-      {folderName: 'Constellation', fileName: 'node'},
-      {folderName: 'Constellation', fileName: 'nodeArch'},
+      { folderName: 'Constellation', fileName: 'node' },
+      { folderName: 'Constellation', fileName: 'nodeArch' },
     ],
-    constellationConfigSetup: { 
-      configName: 'constellation.config', 
-      folderName: 'Constellation', 
-      localIpAddress : config.localIpAddress, 
-      localPort : ports.constellation,
-      remoteIpAddress : null, 
-      remotePort : ports.constellation,
-      publicKeyFileName: 'node.pub', 
-      privateKeyFileName: 'node.key', 
-      publicArchKeyFileName: 'nodeArch.pub', 
-      privateArchKeyFileName: 'nodeArch.key', 
+    constellationConfigSetup: {
+      configName: 'constellation.config',
+      folderName: 'Constellation',
+      localIpAddress: config.localIpAddress,
+      localPort: ports.constellation,
+      remoteIpAddress: null,
+      remotePort: ports.constellation,
+      publicKeyFileName: 'node.pub',
+      privateKeyFileName: 'node.key',
+      publicArchKeyFileName: 'nodeArch.pub',
+      privateArchKeyFileName: 'nodeArch.key',
     },
     "web3IPCHost": './Blockchain/geth.ipc',
-    "web3RPCProvider": 'http://localhost:'+ports.gethNodeRPC,
-    "web3WSRPCProvider": 'ws://localhost:'+ports.gethNodeWS_RPC,
+    "web3RPCProvider": 'http://localhost:' + ports.gethNodeRPC,
+    "web3WSRPCProvider": 'ws://localhost:' + ports.gethNodeWS_RPC,
     consensus: 'raft'
   }
 
@@ -78,19 +82,19 @@ function startNewRaftNetwork(config, cb){
     whisper.PublishNodeInformation
   )
 
-  seqFunction(nodeConfig, function(err, res){
+  seqFunction(nodeConfig, function (err, res) {
     if (err) { return console.log('ERROR', err) }
     console.log('[*] Done')
     cb(err, res)
   })
 }
 
-function handleStartingNewRaftNetwork(options, cb){
+function handleStartingNewRaftNetwork(options, cb) {
   config = {}
   config.localIpAddress = options.localIpAddress
   config.networkMembership = options.networkMembership
   config.keepExistingFiles = options.keepExistingFiles
-  startNewRaftNetwork(config, function(err, result){
+  startNewRaftNetwork(config, function (err, result) {
     if (err) { return console.log('ERROR', err) }
     config.raftNetwork = Object.assign({}, result)
     let networks = {
@@ -99,6 +103,16 @@ function handleStartingNewRaftNetwork(options, cb){
     }
     cb(err, networks)
   })
+}
+
+function create_UUID() {
+  var dt = new Date().getTime();
+  var uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+    var r = (dt + Math.random() * 16) % 16 | 0;
+    dt = Math.floor(dt / 16);
+    return (c == 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+  });
+  return uuid;
 }
 
 exports.HandleStartingNewRaftNetwork = handleStartingNewRaftNetwork

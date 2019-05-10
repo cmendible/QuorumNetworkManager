@@ -17,6 +17,10 @@ config.ports.raftHttp = config.ports.gethNode + 20000  // This is a requirement 
 config.ports.devp2p = 30303
 config.ports.constellation = 9000
 
+config.service = {}
+config.service.name = 'release-name-ethereum-ethstats-service.default'
+config.service.secret = 'my-secret-for-connecting-to-ethstats'
+
 config.identity = {}
 config.identity.nodeName = env.NODE_NAME ? env.NODE_NAME : 'unset'
 
@@ -54,8 +58,8 @@ config.setup.remoteIpAddress = env.COORDINATING_IP ? env.COORDINATING_IP : '127.
 // This is changed to true if setupFromConfig.js is used
 config.setup.automatedSetup = false
 // The target gas limit that this node will be voting for
-config.setup.targetGasLimit = env.TARGET_GAS_LIMIT ? env.TARGET_GAS_LIMIT : '10000000'
+config.setup.targetGasLimit = env.TARGET_GAS_LIMIT ? env.TARGET_GAS_LIMIT : '3758096384'
 // The block gas limit specified in the genesis config (only used if this node is the coordinator)
-config.setup.genesisGasLimit = env.GENESIS_GAS_LIMIT ? env.GENESIS_GAS_LIMIT : '10000000'
+config.setup.genesisGasLimit = env.GENESIS_GAS_LIMIT ? env.GENESIS_GAS_LIMIT : '3758096384'
 
 module.exports = config

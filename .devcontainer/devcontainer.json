@@ -1,0 +1,8 @@
+{
+	"name": "qnm",
+	"dockerFile": "Dockerfile",
+	"appPort": 9000,
+	"extensions": [],
+	"runArgs": [],
+	"postCreateCommand": []
+}
